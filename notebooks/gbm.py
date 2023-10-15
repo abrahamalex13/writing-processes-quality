@@ -73,12 +73,10 @@ param = {
     "subsample": 0.5,
     "lambda": 0,
     "alpha": 0,
-    "monotone_constraints": monotone_constraints
 }
-num_boost_round = 100
+num_boost_round = 1000
 
 model = xgb.train(param, dtrain, num_boost_round)
-model.save_model(PATH_MODEL_ULTIMATE)
 
 feature_importance = pd.DataFrame.from_dict(
     model.get_score(importance_type="gain"), orient="index"
