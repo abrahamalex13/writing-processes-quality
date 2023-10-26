@@ -7,45 +7,38 @@ from sklearn.model_selection import train_test_split
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
 y = pd.read_csv("./data/external/train_scores.csv")
-y.index = y['id']
-y = y.rename(columns={'score': 'y'})
-y = y.drop(columns='id')
-XY = pd.merge(X, y, how='left', left_index=True, right_index=True)
-y = XY['y']
-X = XY.drop(columns='y')
+y.index = y["id"]
+y = y.rename(columns={"score": "y"})
+y = y.drop(columns="id")
+XY = pd.merge(X, y, how="left", left_index=True, right_index=True)
+y = XY["y"]
+X = XY.drop(columns="y")
 
-X, X_test, y, y_test = train_test_split(
-    X, y, test_size=0.33, random_state=777
-    )
+X, X_test, y, y_test = train_test_split(X, y, test_size=0.33, random_state=777)
 
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
 dtest = xgb.DMatrix(X_test.astype("float"))
 
 grid_tune = pd.DataFrame(
-    {
-        "objective": "reg:squarederror",
-        "num_boost_round": [100],
-        "eta": [0.01],
-        "max_depth": [1],
-        "subsample": [0.5],
-        "lambda": [0],
-        "alpha": [0]
-    }
+    # {
+    #     "objective": "reg:squarederror",
+    #     "booster": "gbtree",
+    #     "num_boost_round": [100],
+    #     "eta": [0.01],
+    #     # "max_depth": [3],
+    #     "subsample": [0.5],
+    #     "lambda": [0],
+    #     "alpha": [0.5],
+    #     "colsample_bytree": [0.5],
+    # }
 )
 
 grid_tune = grid_tune.iloc[np.repeat(0, 5), :].reset_index(drop=True)
-grid_tune["num_boost_round"] = [
-    100,
-    500,
-    750,
-    1000,
-    2000
-]
+grid_tune["num_boost_round"] = [100, 500, 1000, 1500, 2000]
 # grid_tune["max_depth"] = [1, 2, 3, 5]
 
 scores = []
 for i in range(grid_tune.shape[0]):
-
     param_all = grid_tune.iloc[i, :].to_dict()
     param = param_all.copy()
     del param["num_boost_round"]
@@ -69,7 +62,7 @@ scores
 param = {
     "objective": "reg:squarederror",
     "eta": 0.01,
-    "max_depth": 1,
+    "max_depth": 3,
     "subsample": 0.5,
     "lambda": 0,
     "alpha": 0,
