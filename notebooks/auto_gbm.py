@@ -19,6 +19,13 @@ X, X_test, y, y_test = train_test_split(X, y, test_size=0.33, random_state=777)
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
 dtest = xgb.DMatrix(X_test.astype("float"))
 
+NUM_ROUND = 500
+
+# helpful guidance: https://twitter.com/tunguz/status/1572642449302106112/photo/1
+# for optuna experiments: fix number of rounds, adjust learning rate.
+# no specification of early stopping
+# then, after, adjust number of rounds/learn rate
+
 
 def objective(trial):
     param = {
@@ -26,18 +33,17 @@ def objective(trial):
         "booster": trial.suggest_categorical(
             "booster", ["gbtree", "gblinear", "dart"]
         ),
-        "num_boost_round": 10,
         "lambda": trial.suggest_float("lambda", 1e-8, 1.0, log=True),
         "alpha": trial.suggest_float("alpha", 1e-8, 1.0, log=True),
-        "subsample": trial.suggest_float("subsample", 0.2, 1.0),
+        "subsample": trial.suggest_float("subsample", 0.4, 1.0),
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.2, 1.0),
     }
 
     if param["booster"] in ["gbtree", "dart"]:
-        param["max_depth"] = trial.suggest_int("max_depth", 3, 9, step=2)
+        param["max_depth"] = trial.suggest_int("max_depth", 1, 9, step=2)
 
-        param["min_child_weight"] = trial.suggest_int("min_child_weight", 2, 10)
-        param["eta"] = trial.suggest_float("eta", 1e-8, 1.0, log=True)
+        param["min_child_weight"] = trial.suggest_int("min_child_weight", 1, 10)
+        param["eta"] = trial.suggest_float("eta", 1e-8, 0.01, log=True)
 
         param["gamma"] = trial.suggest_float("gamma", 1e-8, 1.0, log=True)
         param["grow_policy"] = trial.suggest_categorical(
@@ -58,7 +64,7 @@ def objective(trial):
             "skip_drop", 1e-8, 1.0, log=True
         )
 
-    model = xgb.train(param, dtrain)
+    model = xgb.train(param, dtrain, NUM_ROUND)
 
     y_pred = model.predict(dtest)
 
@@ -68,6 +74,8 @@ def objective(trial):
 
 
 study = optuna.create_study()
-study.optimize(objective, n_trials=100)
+study.optimize(objective, n_trials=200)
 
 study.best_params
+study.best_trial
+study.best_value
