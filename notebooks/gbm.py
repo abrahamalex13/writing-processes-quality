@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 import xgboost as xgb
-from sklearn import metrics
-from collections import OrderedDict
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
@@ -57,9 +56,7 @@ for i in range(n_experiments := grid_tune.shape[0]):
     y_pred = model.predict(dtest)
 
     score = {}
-    score["error_summary"] = metrics.mean_squared_error(
-        y_test, y_pred, squared=False
-    )
+    score["error_summary"] = mean_squared_error(y_test, y_pred, squared=False)
     scores.append(score)
 
     print("iteration " + str(i) + " complete.")
