@@ -19,30 +19,39 @@ X, X_test, y, y_test = train_test_split(X, y, test_size=0.33, random_state=777)
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
 dtest = xgb.DMatrix(X_test.astype("float"))
 
-grid_tune = pd.DataFrame(
-    # {
-    #     "objective": "reg:squarederror",
-    #     "booster": "gbtree",
-    #     "num_boost_round": [100],
-    #     "eta": [0.01],
-    #     # "max_depth": [3],
-    #     "subsample": [0.5],
-    #     "lambda": [0],
-    #     "alpha": [0.5],
-    #     "colsample_bytree": [0.5],
-    # }
+params_constant = pd.DataFrame(
+    {
+        "objective": "reg:squarederror",
+        "booster": "dart",
+        "lambda": 0,
+        "alpha": 0,
+        "subsample": 0.6,
+        "colsample_bytree": 0.9,
+        "max_depth": 3,
+        "min_child_weight": 5,
+        "eta": 0.01,
+        "gamma": 0,
+        "grow_policy": "depthwise",
+        "sample_type": "weighted",
+        "normalize_type": "forest",
+        "rate_drop": 0,
+        "skip_drop": 0.0001,
+    },
+    index=[0],
 )
+params_test = pd.DataFrame({"num_boost_round": [100, 500]})
 
-grid_tune = grid_tune.iloc[np.repeat(0, 5), :].reset_index(drop=True)
-grid_tune["num_boost_round"] = [100, 500, 1000, 1500, 2000]
-# grid_tune["max_depth"] = [1, 2, 3, 5]
+params_constant = pd.concat(
+    [params_constant] * params_test.shape[0]
+).reset_index(drop=True)
+
+grid_tune = pd.concat([params_constant, params_test], axis=1)
 
 scores = []
-for i in range(grid_tune.shape[0]):
-    param_all = grid_tune.iloc[i, :].to_dict()
-    param = param_all.copy()
+for i in range(n_experiments := grid_tune.shape[0]):
+    param = grid_tune.iloc[i, :].to_dict()
+    num_boost_round = param["num_boost_round"]
     del param["num_boost_round"]
-    num_boost_round = param_all["num_boost_round"]
     model = xgb.train(param, dtrain, num_boost_round)
 
     y_pred = model.predict(dtest)
