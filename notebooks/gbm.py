@@ -21,24 +21,20 @@ dtest = xgb.DMatrix(X_test.astype("float"))
 params_constant = pd.DataFrame(
     {
         "objective": "reg:squarederror",
-        "booster": "dart",
-        "lambda": 0,
-        "alpha": 0,
-        "subsample": 0.6,
-        "colsample_bytree": 0.9,
+        "booster": "gbtree",
+        "lambda": 0.9,
+        "alpha": 0.01,
+        "subsample": 0.5,
+        "colsample_bytree": 0.5,
         "max_depth": 3,
         "min_child_weight": 5,
         "eta": 0.01,
-        "gamma": 0,
         "grow_policy": "depthwise",
-        "sample_type": "weighted",
-        "normalize_type": "forest",
-        "rate_drop": 0,
-        "skip_drop": 0.0001,
+        "gamma": 0.00025,
     },
     index=[0],
 )
-params_test = pd.DataFrame({"num_boost_round": [100, 500]})
+params_test = pd.DataFrame({"num_boost_round": [100, 250, 500, 750, 1000]})
 
 params_constant = pd.concat(
     [params_constant] * params_test.shape[0]
@@ -67,13 +63,18 @@ scores
 # finalize
 param = {
     "objective": "reg:squarederror",
-    "eta": 0.01,
-    "max_depth": 3,
+    "booster": "gbtree",
+    "lambda": 0.9,
+    "alpha": 0.01,
     "subsample": 0.5,
-    "lambda": 0,
-    "alpha": 0,
+    "colsample_bytree": 0.5,
+    "max_depth": 3,
+    "min_child_weight": 5,
+    "eta": 0.01,
+    "grow_policy": "depthwise",
+    "gamma": 0.00025,
 }
-num_boost_round = 1000
+num_boost_round = 750
 
 model = xgb.train(param, dtrain, num_boost_round)
 
@@ -82,3 +83,23 @@ feature_importance = pd.DataFrame.from_dict(
 ).reset_index(drop=False)
 feature_importance.columns = ["feature", "score"]
 feature_importance = feature_importance.sort_values("score", ascending=False)
+feature_importance.head(25)
+
+XY_test_eval = pd.concat([X_test, y_test], axis=1)
+XY_test_eval["pred"] = model.predict(dtest)
+XY_test_eval["error"] = XY_test_eval["y"] - XY_test_eval["pred"]
+XY_test_eval["error_abs"] = XY_test_eval["error"].abs()
+XY_test_eval = XY_test_eval.astype(float)
+
+import plotnine as p9
+
+(p9.ggplot(XY_test_eval) + p9.geom_point(p9.aes("pred", "error"), alpha=0.25))
+(p9.ggplot(XY_test_eval) + p9.geom_point(p9.aes("y", "error"), alpha=0.25))
+(
+    p9.ggplot(XY_test_eval)
+    + p9.geom_point(p9.aes("pause_time_p50", "error"), alpha=0.25)
+)
+(
+    p9.ggplot(XY_test_eval)
+    + p9.geom_point(p9.aes("delete_insert_ratio", "error"), alpha=0.25)
+)
