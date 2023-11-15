@@ -4,7 +4,7 @@ import xgboost as xgb
 import math
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-from skranger.ensemble import RangerForestRegressor
+from sklearn.ensemble import RandomForestRegressor
 import optuna
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
@@ -39,10 +39,10 @@ model = xgb.train(param, dtrain, num_boost_round)
 pred_gbm = model.predict(dtest)
 
 
-model = RangerForestRegressor(
+model = RandomForestRegressor(
     n_estimators=500,
-    mtry=math.floor(math.sqrt(X.shape[1])),
-    max_depth=0,
+    max_features="sqrt",
+    max_depth=None,
 )
 model.fit(X, y.values)
 pred_rf = model.predict(X_test)
