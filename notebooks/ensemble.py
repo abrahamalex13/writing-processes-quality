@@ -97,7 +97,9 @@ X_test = XY_test.map(lambda x, y: x)
 text_vectorization = tf.keras.layers.TextVectorization(
     # with anonymized text, downscale recommended vocabulary size by magnitude
     max_tokens=20000,
-    standardize="lower_and_strip_punctuation",
+    # standardize="lower_and_strip_punctuation",
+    # other models' results imply, punctuation usage is important
+    standardize="lower",
     split="whitespace",
     ngrams=2,
     output_mode="tf_idf",
@@ -124,7 +126,7 @@ model = keras.Model(inputs, outputs)
 model.compile(optimizer="rmsprop", loss="mean_squared_error")
 
 early_stopping_callback = tf.keras.callbacks.EarlyStopping(
-    monitor="val_loss", patience=10
+    monitor="val_loss", patience=20
 )
 model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath="checkpoint_nn",
