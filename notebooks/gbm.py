@@ -22,15 +22,15 @@ params_constant = pd.DataFrame(
     {
         "objective": "reg:squarederror",
         "booster": "gbtree",
-        "lambda": 0.9,
-        "alpha": 0.01,
+        "lambda": 0.0005,
+        "alpha": 0.00025,
         "subsample": 0.5,
         "colsample_bytree": 0.5,
         "max_depth": 3,
-        "min_child_weight": 5,
+        "min_child_weight": 3,
         "eta": 0.01,
-        "grow_policy": "depthwise",
-        "gamma": 0.00025,
+        "gamma": 0.1,
+        "grow_policy": "lossguide",
     },
     index=[0],
 )
@@ -64,15 +64,15 @@ scores
 param = {
     "objective": "reg:squarederror",
     "booster": "gbtree",
-    "lambda": 0.9,
-    "alpha": 0.01,
+    "lambda": 0.0005,
+    "alpha": 0.00025,
     "subsample": 0.5,
     "colsample_bytree": 0.5,
     "max_depth": 3,
-    "min_child_weight": 5,
+    "min_child_weight": 3,
     "eta": 0.01,
-    "grow_policy": "depthwise",
-    "gamma": 0.00025,
+    "gamma": 0.1,
+    "grow_policy": "lossguide",
 }
 num_boost_round = 750
 
