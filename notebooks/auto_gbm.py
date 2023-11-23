@@ -6,15 +6,9 @@ import optuna
 from sklearn.model_selection import train_test_split
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
-y = pd.read_csv("./data/external/train_scores.csv")
-y.index = y["id"]
-y = y.rename(columns={"score": "y"})
-y = y.drop(columns="id")
-XY = pd.merge(X, y, how="left", left_index=True, right_index=True)
-y = XY["y"]
-X = XY.drop(columns="y")
-
-X, X_test, y, y_test = train_test_split(X, y, test_size=0.33, random_state=777)
+y = pd.read_pickle("./data/processed/y_train.pkl")
+X_test = pd.read_pickle("./data/processed/X_test.pkl")
+y_test = pd.read_pickle("./data/processed/y_test.pkl")
 
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
 dtest = xgb.DMatrix(X_test.astype("float"))
@@ -74,7 +68,10 @@ def objective(trial):
 
 
 study = optuna.create_study()
-study.optimize(objective, n_trials=200)
+# if optuna returns nulls in y_pred, don't fail the entire study
+study.optimize(
+    objective, n_trials=100, catch=(ValueError,), n_jobs=-1, timeout=1 * 60 * 60
+)
 
 study.best_params
 study.best_trial
