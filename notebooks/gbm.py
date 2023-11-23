@@ -5,15 +5,9 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
-y = pd.read_csv("./data/external/train_scores.csv")
-y.index = y["id"]
-y = y.rename(columns={"score": "y"})
-y = y.drop(columns="id")
-XY = pd.merge(X, y, how="left", left_index=True, right_index=True)
-y = XY["y"]
-X = XY.drop(columns="y")
-
-X, X_test, y, y_test = train_test_split(X, y, test_size=0.33, random_state=777)
+y = pd.read_pickle("./data/processed/y_train.pkl")
+X_test = pd.read_pickle("./data/processed/X_test.pkl")
+y_test = pd.read_pickle("./data/processed/y_test.pkl")
 
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
 dtest = xgb.DMatrix(X_test.astype("float"))
@@ -21,20 +15,26 @@ dtest = xgb.DMatrix(X_test.astype("float"))
 params_constant = pd.DataFrame(
     {
         "objective": "reg:squarederror",
-        "booster": "gbtree",
-        "lambda": 0.0005,
-        "alpha": 0.00025,
-        "subsample": 0.5,
-        "colsample_bytree": 0.5,
+        "booster": "dart",
+        "lambda": 0.18516628343749034,
+        "alpha": 0.01161424854519958,
+        "subsample": 0.7513434457021767,
+        "colsample_bytree": 0.6925492859363613,
         "max_depth": 3,
-        "min_child_weight": 3,
-        "eta": 0.01,
-        "gamma": 0.1,
+        "min_child_weight": 6,
+        "eta": 0.009742898484514316,
+        "gamma": 8.283440039691276e-07,
         "grow_policy": "lossguide",
+        "sample_type": "uniform",
+        "normalize_type": "forest",
+        "rate_drop": 7.888155487668706e-06,
+        "skip_drop": 0.04779787303400517,
     },
     index=[0],
 )
-params_test = pd.DataFrame({"num_boost_round": [100, 250, 500, 750, 1000]})
+params_test = pd.DataFrame(
+    {"num_boost_round": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]}
+)
 
 params_constant = pd.concat(
     [params_constant] * params_test.shape[0]
@@ -64,17 +64,17 @@ scores
 param = {
     "objective": "reg:squarederror",
     "booster": "gbtree",
-    "lambda": 0.0005,
-    "alpha": 0.00025,
-    "subsample": 0.5,
-    "colsample_bytree": 0.5,
+    "lambda": 0.005,
+    "alpha": 0,
+    "subsample": 0.8,
+    "colsample_bytree": 0.4,
     "max_depth": 3,
     "min_child_weight": 3,
     "eta": 0.01,
-    "gamma": 0.1,
+    "gamma": 0.015,
     "grow_policy": "lossguide",
 }
-num_boost_round = 750
+num_boost_round = 1000
 
 model = xgb.train(param, dtrain, num_boost_round)
 
