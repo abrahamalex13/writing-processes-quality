@@ -3,7 +3,6 @@ import numpy as np
 import xgboost as xgb
 from sklearn import metrics
 import optuna
-from sklearn.model_selection import train_test_split
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
 y = pd.read_pickle("./data/processed/y_train.pkl")
@@ -13,7 +12,7 @@ y_test = pd.read_pickle("./data/processed/y_test.pkl")
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
 dtest = xgb.DMatrix(X_test.astype("float"))
 
-NUM_ROUND = 500
+NUM_ROUND = 1000
 
 # helpful guidance: https://twitter.com/tunguz/status/1572642449302106112/photo/1
 # for optuna experiments: fix number of rounds, adjust learning rate.
@@ -70,7 +69,7 @@ def objective(trial):
 study = optuna.create_study()
 # if optuna returns nulls in y_pred, don't fail the entire study
 study.optimize(
-    objective, n_trials=100, catch=(ValueError,), n_jobs=-1, timeout=1 * 60 * 60
+    objective, n_trials=200, catch=(ValueError,), n_jobs=-1, timeout=4 * 60 * 60
 )
 
 study.best_params
