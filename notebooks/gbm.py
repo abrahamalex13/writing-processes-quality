@@ -15,25 +15,21 @@ dtest = xgb.DMatrix(X_test.astype("float"))
 params_constant = pd.DataFrame(
     {
         "objective": "reg:squarederror",
-        "booster": "dart",
-        "lambda": 0.18516628343749034,
-        "alpha": 0.01161424854519958,
-        "subsample": 0.7513434457021767,
-        "colsample_bytree": 0.6925492859363613,
-        "max_depth": 3,
-        "min_child_weight": 6,
-        "eta": 0.009742898484514316,
-        "gamma": 8.283440039691276e-07,
-        "grow_policy": "lossguide",
-        "sample_type": "uniform",
-        "normalize_type": "forest",
-        "rate_drop": 7.888155487668706e-06,
-        "skip_drop": 0.04779787303400517,
+        'booster': 'gbtree',
+        'lambda': 0.005688856336949484,
+        'alpha': 0.16846192763408382,
+        'subsample': 0.8618673340295087,
+        'colsample_bytree': 0.9513765751263797,
+        'max_depth': 3,
+        'min_child_weight': 9,
+        'eta': 0.007256885852832296,
+        'gamma': 0.14278657028329778,
+        'grow_policy': 'lossguide'
     },
     index=[0],
 )
 params_test = pd.DataFrame(
-    {"num_boost_round": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]}
+    {"num_boost_round": [800, 900, 1000, 1100, 1200]}
 )
 
 params_constant = pd.concat(
@@ -63,17 +59,17 @@ scores
 # finalize
 param = {
     "objective": "reg:squarederror",
-    "booster": "gbtree",
-    "lambda": 0.005,
-    "alpha": 0,
-    "subsample": 0.8,
-    "colsample_bytree": 0.4,
-    "max_depth": 3,
-    "min_child_weight": 3,
-    "eta": 0.01,
-    "gamma": 0.015,
-    "grow_policy": "lossguide",
-}
+    'booster': 'gbtree',
+    'lambda': 0.005688856336949484,
+    'alpha': 0.16846192763408382,
+    'subsample': 0.8618673340295087,
+    'colsample_bytree': 0.9513765751263797,
+    'max_depth': 3,
+    'min_child_weight': 9,
+    'eta': 0.007256885852832296,
+    'gamma': 0.14278657028329778,
+    'grow_policy': 'lossguide'
+    }
 num_boost_round = 1000
 
 model = xgb.train(param, dtrain, num_boost_round)
