@@ -24,18 +24,18 @@ y_test = pd.read_pickle("./data/processed/y_test.pkl")
 
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
 dtest = xgb.DMatrix(X_test.astype("float"))
-param =     {
+param = {
     "objective": "reg:squarederror",
-    'booster': 'gbtree',
-    'lambda': 0.005688856336949484,
-    'alpha': 0.16846192763408382,
-    'subsample': 0.8618673340295087,
-    'colsample_bytree': 0.9513765751263797,
-    'max_depth': 3,
-    'min_child_weight': 9,
-    'eta': 0.007256885852832296,
-    'gamma': 0.14278657028329778,
-    'grow_policy': 'lossguide'
+    "booster": "gbtree",
+    "lambda": 2.2864503265614494e-07,
+    "alpha": 3.291236167053757e-05,
+    "subsample": 0.5145373136184048,
+    "colsample_bytree": 0.44401075818853125,
+    "max_depth": 3,
+    "min_child_weight": 6,
+    "eta": 0.00917371721047756,
+    "gamma": 8.217276838858242e-05,
+    "grow_policy": "depthwise",
 }
 num_boost_round = 1000
 model = xgb.train(param, dtrain, num_boost_round)
@@ -150,8 +150,8 @@ def objective(trial):
     w = [x / sum(param) for x in param]
 
     y_pred = (
-        w[0] * pred_gbm 
-        + w[1] * pred_rf 
+        w[0] * pred_gbm
+        + w[1] * pred_rf
         # + w[2] * pred_nn
     )
 
