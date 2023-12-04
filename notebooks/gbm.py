@@ -10,63 +10,83 @@ X_test = pd.read_pickle("./data/processed/X_test.pkl")
 y_test = pd.read_pickle("./data/processed/y_test.pkl")
 
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
-dtest = xgb.DMatrix(X_test.astype("float"))
+dtest = xgb.DMatrix(X_test.astype("float"), label=y_test)
 
-params_constant = pd.DataFrame(
-    {
-        "objective": "reg:squarederror",
-        "booster": "gbtree",
-        "lambda": 2.2864503265614494e-07,
-        "alpha": 3.291236167053757e-05,
-        "subsample": 0.5145373136184048,
-        "colsample_bytree": 0.44401075818853125,
-        "max_depth": 3,
-        "min_child_weight": 6,
-        "eta": 0.00917371721047756,
-        "gamma": 8.217276838858242e-05,
-        "grow_policy": "depthwise",
-    },
-    index=[0],
+params_constant = {
+    "objective": "reg:squarederror",
+    "booster": "gbtree",
+    "lambda": 0.40126230344517827,
+    "alpha": 0.7371523926815153,
+    "subsample": 0.7833463483449391,
+    "colsample_bytree": 0.3485745490154163,
+    "max_depth": 5,
+    "min_child_weight": 9,
+    "eta": 0.005245686094970051,
+    "gamma": 0.6533572521917524,
+    "grow_policy": "lossguide",
+}
+# params_constant = pd.DataFrame(
+#     {
+#         "objective": "reg:squarederror",
+#         "booster": "gbtree",
+#         "lambda": 0,
+#         "alpha": 0.66,
+#         "subsample": 0.85,
+#         "colsample_bytree": 0.9,
+#         "max_depth": 7,
+#         "min_child_weight": 10,
+#         "eta": 0.006,
+#         "gamma": 0,
+#         "grow_policy": "lossguide",
+#     },
+#     index=[0],
+# )
+# params_test = pd.DataFrame({"num_boost_round": [800, 900, 1000, 1100, 1200]})
+# params_constant = pd.concat(
+#     [params_constant] * params_test.shape[0]
+# ).reset_index(drop=True)
+
+# grid_tune = pd.concat([params_constant, params_test], axis=1)
+
+# xgb.train early stopping example:
+# https://www.kaggle.com/code/tunguz/xgboost-one-step-ahead-lb-0-519/script
+
+# scores = []
+# for i in range(n_experiments := grid_tune.shape[0]):
+#     param = grid_tune.iloc[i, :].to_dict()
+#     num_boost_round = param["num_boost_round"]
+#     del param["num_boost_round"]
+#     model = xgb.train(param, dtrain, num_boost_round)
+
+#     y_pred = model.predict(dtest)
+
+#     score = {}
+#     score["error_summary"] = mean_squared_error(y_test, y_pred, squared=False)
+#     scores.append(score)
+
+#     print("iteration " + str(i) + " complete.")
+
+# scores
+
+watchlist = [(dtrain, "train"), (dtest, "eval")]
+model = xgb.train(
+    params_constant, dtrain, 2000, watchlist, early_stopping_rounds=50
 )
-params_test = pd.DataFrame({"num_boost_round": [800, 900, 1000, 1100, 1200]})
-
-params_constant = pd.concat(
-    [params_constant] * params_test.shape[0]
-).reset_index(drop=True)
-
-grid_tune = pd.concat([params_constant, params_test], axis=1)
-
-scores = []
-for i in range(n_experiments := grid_tune.shape[0]):
-    param = grid_tune.iloc[i, :].to_dict()
-    num_boost_round = param["num_boost_round"]
-    del param["num_boost_round"]
-    model = xgb.train(param, dtrain, num_boost_round)
-
-    y_pred = model.predict(dtest)
-
-    score = {}
-    score["error_summary"] = mean_squared_error(y_test, y_pred, squared=False)
-    scores.append(score)
-
-    print("iteration " + str(i) + " complete.")
-
-scores
 
 
 # finalize
 param = {
     "objective": "reg:squarederror",
     "booster": "gbtree",
-    "lambda": 2.2864503265614494e-07,
-    "alpha": 3.291236167053757e-05,
-    "subsample": 0.5145373136184048,
-    "colsample_bytree": 0.44401075818853125,
-    "max_depth": 3,
-    "min_child_weight": 6,
-    "eta": 0.00917371721047756,
-    "gamma": 8.217276838858242e-05,
-    "grow_policy": "depthwise",
+    "lambda": 0.40126230344517827,
+    "alpha": 0.7371523926815153,
+    "subsample": 0.7833463483449391,
+    "colsample_bytree": 0.3485745490154163,
+    "max_depth": 5,
+    "min_child_weight": 9,
+    "eta": 0.005245686094970051,
+    "gamma": 0.6533572521917524,
+    "grow_policy": "lossguide",
 }
 num_boost_round = 1000
 
