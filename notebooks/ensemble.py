@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import math
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
@@ -18,8 +19,12 @@ from src.data.extract_scrub_essay_text import (
 
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
+std_scaler = StandardScaler()
+X_std = std_scaler.fit_transform(X)
 y = pd.read_pickle("./data/processed/y_train.pkl")
+
 X_test = pd.read_pickle("./data/processed/X_test.pkl")
+X_test_std = std_scaler.transform(X_test)
 y_test = pd.read_pickle("./data/processed/y_test.pkl")
 
 dtrain = xgb.DMatrix(X.astype("float"), label=y)
@@ -51,93 +56,120 @@ model.fit(X, y.values)
 pred_rf = model.predict(X_test)
 
 
-# PATH_TRAIN_LOGS = "./data/external/train_logs.csv"
-# X_train_logs = extract(PATH_TRAIN_LOGS)
-# X_train_logs = scrub_activity(X_train_logs)
-# X_train_logs = scrub_text_change(X_train_logs)
+PATH_TRAIN_LOGS = "./data/external/train_logs.csv"
+X_train_logs = extract(PATH_TRAIN_LOGS)
+X_train_logs = scrub_activity(X_train_logs)
+X_train_logs = scrub_text_change(X_train_logs)
 
-# X_train_logs = [x for _, x in X_train_logs.groupby("id")]
-# essays_text = pd.concat(
-#     [concatenate_essay_from_logs(x) for x in X_train_logs], axis=0
-# )
-# # keras TextVectorization does not recognize emdash as punctuation
-# essays_text["essay"] = essays_text["essay"].str.replace("—", " ")
+X_train_logs = [x for _, x in X_train_logs.groupby("id")]
+essays = pd.concat(
+    [concatenate_essay_from_logs(x) for x in X_train_logs], axis=0
+)
+# keras TextVectorization does not recognize emdash as punctuation
+essays["essay"] = essays["essay"].str.replace("—", " ")
 
-# essays_text = essays_text.set_index("id")
-# X = (
-#     pd.merge(y, essays_text, "inner", left_index=True, right_index=True)
-#     .drop(columns="y")
-#     .to_numpy()
-# )
-# X_test = (
-#     pd.merge(y_test, essays_text, "inner", left_index=True, right_index=True)
-#     .drop(columns="y")
-#     .to_numpy()
-# )
+essays = essays.set_index("id")
+essays_train = (
+    pd.merge(y, essays, "inner", left_index=True, right_index=True)
+    .drop(columns="y")
+    .to_numpy()
+)
+essays_test = (
+    pd.merge(y_test, essays, "inner", left_index=True, right_index=True)
+    .drop(columns="y")
+    .to_numpy()
+)
 
-# BATCH_SIZE = 32
+BATCH_SIZE = 32
 
-# # in tf Dataset structure, one element is one X-y pair
-# XY_train = tf.data.Dataset.from_tensor_slices((X, y.to_numpy())).batch(
-#     BATCH_SIZE
-# )
-# X_train = XY_train.map(lambda x, y: x)
+# in tf Dataset structure, one element is one X-y pair
+essays_y_train_nn = tf.data.Dataset.from_tensor_slices(
+    (essays_train, y.to_numpy())
+)
+essays_train_nn = essays_y_train_nn.map(lambda x, y: x)
 
-# XY_test = tf.data.Dataset.from_tensor_slices((X_test, y_test.to_numpy())).batch(
-#     BATCH_SIZE
-# )
-# X_test = XY_test.map(lambda x, y: x)
+essays_y_test_nn = tf.data.Dataset.from_tensor_slices(
+    (essays_test, y_test.to_numpy())
+)
+essays_test_nn = essays_y_test_nn.map(lambda x, y: x)
 
-# text_vectorization = tf.keras.layers.TextVectorization(
-#     # with anonymized text, downscale recommended vocabulary size by magnitude
-#     max_tokens=20000,
-#     # standardize="lower_and_strip_punctuation",
-#     # other models' results imply, punctuation usage is important
-#     standardize="lower",
-#     split="whitespace",
-#     ngrams=2,
-#     output_mode="tf_idf",
-# )
+text_vectorization = tf.keras.layers.TextVectorization(
+    # with anonymized text, downscale recommended vocabulary size by magnitude
+    max_tokens=20000,
+    # standardize="lower_and_strip_punctuation",
+    # other models' results imply, punctuation usage is important
+    standardize="lower",
+    split="whitespace",
+    ngrams=4,
+    output_mode="count",
+)
 
-# text_vectorization.adapt(X_train)
-# # values = text_vectorization.get_vocabulary()
+text_vectorization.adapt(essays_train_nn)
+# values = text_vectorization.get_vocabulary()
 
-# tfidf_XY_train = XY_train.map(
+# XY_train_nn = essays_y_train_nn.map(
 #     lambda x, y: (text_vectorization(x), y), num_parallel_calls=4
 # )
+# X_train_nn = XY_train_nn.map(lambda x, y: x)
 
-# tfidf_XY_test = XY_test.map(
+# XY_test_nn = essays_y_test_nn.map(
 #     lambda x, y: (text_vectorization(x), y), num_parallel_calls=4
 # )
+# X_test_nn = XY_test_nn.map(lambda x, y: x)
 
-# n_tokens = text_vectorization.vocabulary_size()
+# X_writing_proc_train_nn = tf.data.Dataset.from_tensor_slices(X)
+# y_writing_proc_train_nn = tf.data.Dataset.from_tensor_slices(y)
 
-# inputs = keras.Input(shape=(n_tokens,))
-# x = keras.layers.Dense(64, activation="relu")(inputs)
-# x = keras.layers.Dropout(0.5)(x)
-# outputs = keras.layers.Dense(1)(x)
-# model = keras.Model(inputs, outputs)
-# model.compile(optimizer="rmsprop", loss="mean_squared_error")
+n_tokens = text_vectorization.vocabulary_size()
+n_features = X.shape[1]
 
-# early_stopping_callback = tf.keras.callbacks.EarlyStopping(
-#     monitor="val_loss", patience=20
-# )
-# model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-#     filepath="checkpoint_nn",
-#     monitor="val_loss",
-#     mode="min",
-#     save_weights_only=True,
-#     save_best_only=True,
-# )
-# model.fit(
-#     tfidf_XY_train.cache(),
-#     validation_data=tfidf_XY_test.cache(),
-#     epochs=100,
-#     callbacks=[early_stopping_callback, model_checkpoint_callback],
-# )
 
-# model.load_weights("checkpoint_nn")
-# pred_nn = model.predict(tfidf_XY_test)[:, 0]
+# HYPOTHESIS: this keras functional api implementation requires all numpy inputs
+# Batch-type, map-type tf Dataset input types have failed
+
+input_essay = keras.Input(shape=(1,), dtype=tf.string, name="essay_text")
+vectorized_essay = text_vectorization(input_essay)
+supervised_pca_essay = keras.layers.Dense(64, activation="relu")(
+    vectorized_essay
+)
+
+input_writing_process = keras.Input(shape=(n_features,), name="writing_process")
+
+features = keras.layers.Concatenate()(
+    [supervised_pca_essay, input_writing_process]
+)
+features = keras.layers.Dense(64, activation="relu")(features)
+features = keras.layers.Dropout(0.5)(features)
+
+outputs = keras.layers.Dense(1)(features)
+
+model = keras.Model(
+    inputs=[input_essay, input_writing_process], outputs=outputs
+)
+
+model.compile(optimizer="rmsprop", loss="mean_squared_error")
+
+early_stopping_callback = tf.keras.callbacks.EarlyStopping(
+    monitor="val_loss", patience=50
+)
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath="checkpoint_nn",
+    monitor="val_loss",
+    mode="min",
+    save_weights_only=True,
+    save_best_only=True,
+)
+model.fit(
+    [essays_train, X_std],
+    y.to_numpy(),
+    validation_data=([essays_test, X_test_std], y_test.to_numpy()),
+    batch_size=BATCH_SIZE,
+    epochs=200,
+    callbacks=[early_stopping_callback, model_checkpoint_callback],
+)
+
+model.load_weights("checkpoint_nn")
+pred_nn = model.predict([XY_test_nn, X_test.to_numpy()])[:, 0]
 
 
 def objective(trial):
