@@ -138,7 +138,8 @@ input_writing_process = keras.Input(shape=(n_features,), name="writing_process")
 features = keras.layers.Concatenate()(
     [supervised_pca_essay, input_writing_process]
 )
-features = keras.layers.Dense(64, activation="relu")(features)
+# 256 too many, 128 sees MSE go to ~0.49
+features = keras.layers.Dense(256, activation="relu")(features)
 features = keras.layers.Dropout(0.5)(features)
 
 outputs = keras.layers.Dense(1)(features)
@@ -153,7 +154,7 @@ early_stopping_callback = tf.keras.callbacks.EarlyStopping(
     monitor="val_loss", patience=50
 )
 model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath="checkpoint_nn",
+    filepath="tmp/checkpoint_nn",
     monitor="val_loss",
     mode="min",
     save_weights_only=True,
