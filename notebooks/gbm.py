@@ -15,15 +15,15 @@ dtest = xgb.DMatrix(X_test.astype("float"), label=y_test)
 params_constant = {
     "objective": "reg:squarederror",
     "booster": "gbtree",
-    "lambda": 0.40126230344517827,
-    "alpha": 0.7371523926815153,
-    "subsample": 0.7833463483449391,
-    "colsample_bytree": 0.3485745490154163,
-    "max_depth": 5,
-    "min_child_weight": 9,
-    "eta": 0.005245686094970051,
-    "gamma": 0.6533572521917524,
-    "grow_policy": "lossguide",
+    "lambda": 0.5157162179632665,
+    "alpha": 0.0002085920832332985,
+    "subsample": 0.42815479163700265,
+    "colsample_bytree": 0.3395148783864719,
+    "max_depth": 3,
+    "min_child_weight": 10,
+    "eta": 0.006773465226781039,
+    "gamma": 0.10724270605277184,
+    "grow_policy": "depthwise",
 }
 # params_constant = pd.DataFrame(
 #     {
@@ -78,15 +78,15 @@ model = xgb.train(
 param = {
     "objective": "reg:squarederror",
     "booster": "gbtree",
-    "lambda": 0.40126230344517827,
-    "alpha": 0.7371523926815153,
-    "subsample": 0.7833463483449391,
-    "colsample_bytree": 0.3485745490154163,
-    "max_depth": 5,
-    "min_child_weight": 9,
-    "eta": 0.005245686094970051,
-    "gamma": 0.6533572521917524,
-    "grow_policy": "lossguide",
+    "lambda": 0.5157162179632665,
+    "alpha": 0.0002085920832332985,
+    "subsample": 0.42815479163700265,
+    "colsample_bytree": 0.3395148783864719,
+    "max_depth": 3,
+    "min_child_weight": 10,
+    "eta": 0.006773465226781039,
+    "gamma": 0.10724270605277184,
+    "grow_policy": "depthwise",
 }
 num_boost_round = 1000
 
