@@ -69,7 +69,7 @@ def objective(trial):
 study = optuna.create_study()
 # if optuna returns nulls in y_pred, don't fail the entire study
 study.optimize(
-    objective, n_trials=200, catch=(ValueError,), n_jobs=-1, timeout=4 * 60 * 60
+    objective, n_trials=200, catch=(ValueError,), n_jobs=-1, timeout=8 * 60 * 60
 )
 
 study.best_params
