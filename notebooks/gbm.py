@@ -14,20 +14,16 @@ dtest = xgb.DMatrix(X_test.astype("float"), label=y_test)
 
 params_constant = {
     "objective": "reg:squarederror",
-    "booster": "dart",
-    "lambda": 0.398779699064731,
-    "alpha": 0.001604582292125471,
-    "subsample": 0.4416738777730219,
-    "colsample_bytree": 0.8326779169503944,
-    "max_depth": 3,
-    "min_child_weight": 9,
-    "eta": 0.009895259749165145,
-    "gamma": 2.2420356460879198e-07,
+    "booster": "gbtree",
+    "lambda": 0.8994318744091285,
+    "alpha": 0.12920389427178292,
+    "subsample": 0.6082671221862356,
+    "colsample_bytree": 0.22304756450221913,
+    "max_depth": 9,
+    "min_child_weight": 6,
+    "eta": 0.008966046923872099,
+    "gamma": 5.099826742433144e-06,
     "grow_policy": "lossguide",
-    "sample_type": "uniform",
-    "normalize_type": "tree",
-    "rate_drop": 7.02230871007137e-05,
-    "skip_drop": 1.8809036010508264e-07,
 }
 # params_constant = pd.DataFrame(
 #     {
@@ -102,20 +98,16 @@ mean_squared_error(y_test, y_pred, squared=False)
 # finalize
 param = {
     "objective": "reg:squarederror",
-    "booster": "dart",
-    "lambda": 0.398779699064731,
-    "alpha": 0.001604582292125471,
-    "subsample": 0.4416738777730219,
-    "colsample_bytree": 0.8326779169503944,
-    "max_depth": 3,
-    "min_child_weight": 9,
-    "eta": 0.009895259749165145,
-    "gamma": 2.2420356460879198e-07,
+    "booster": "gbtree",
+    "lambda": 0.8994318744091285,
+    "alpha": 0.12920389427178292,
+    "subsample": 0.6082671221862356,
+    "colsample_bytree": 0.22304756450221913,
+    "max_depth": 9,
+    "min_child_weight": 6,
+    "eta": 0.008966046923872099,
+    "gamma": 5.099826742433144e-06,
     "grow_policy": "lossguide",
-    "sample_type": "uniform",
-    "normalize_type": "tree",
-    "rate_drop": 7.02230871007137e-05,
-    "skip_drop": 1.8809036010508264e-07,
 }
 num_boost_round = 1000
 
