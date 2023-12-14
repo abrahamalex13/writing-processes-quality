@@ -36,7 +36,7 @@ def objective(trial):
         param["max_depth"] = trial.suggest_int("max_depth", 1, 9, step=2)
 
         param["min_child_weight"] = trial.suggest_int("min_child_weight", 1, 10)
-        param["eta"] = trial.suggest_float("eta", 1e-8, 0.01, log=True)
+        param["eta"] = trial.suggest_float("eta", 1e-5, 0.01, log=True)
 
         param["gamma"] = trial.suggest_float("gamma", 1e-8, 1.0, log=True)
         param["grow_policy"] = trial.suggest_categorical(
@@ -69,7 +69,11 @@ def objective(trial):
 study = optuna.create_study()
 # if optuna returns nulls in y_pred, don't fail the entire study
 study.optimize(
-    objective, n_trials=200, catch=(ValueError,), n_jobs=-1, timeout=8 * 60 * 60
+    objective,
+    n_trials=200,
+    catch=(ValueError,),
+    n_jobs=-1,
+    timeout=12 * 60 * 60,
 )
 
 study.best_params
