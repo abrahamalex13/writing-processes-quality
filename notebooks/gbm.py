@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 
 X = pd.read_pickle("./data/processed/X_train.pkl")
 y = pd.read_pickle("./data/processed/y_train.pkl")
@@ -68,10 +68,31 @@ params_constant = {
 
 # scores
 
-watchlist = [(dtrain, "train"), (dtest, "eval")]
-model = xgb.train(
-    params_constant, dtrain, 2000, watchlist, early_stopping_rounds=50
-)
+models = []
+for kfold_round in range(5):
+    kf = KFold(n_splits=5, random_state=777 + kfold_round, shuffle=True)
+    for fold, (train_idx, validate_idx) in enumerate(kf.split(X)):
+        X_train_sub, y_train_sub = X.iloc[train_idx], y.iloc[train_idx]
+        X_validate_sub, y_validate_sub = (
+            X.iloc[validate_idx],
+            y.iloc[validate_idx],
+        )
+
+        dtrain = xgb.DMatrix(X_train_sub.astype("float"), label=y_train_sub)
+        dvalid = xgb.DMatrix(
+            X_validate_sub.astype("float"), label=y_validate_sub
+        )
+
+        watchlist = [(dtrain, "train"), (dvalid, "eval")]
+        model = xgb.train(
+            params_constant, dtrain, 2000, watchlist, early_stopping_rounds=50
+        )
+
+        models.append(model)
+
+y_pred = [model.predict(dtest) for model in models]
+y_pred = np.mean(y_pred, axis=0)
+mean_squared_error(y_test, y_pred, squared=False)
 
 
 # finalize
@@ -111,7 +132,7 @@ import plotnine as p9
 (p9.ggplot(XY_test_eval) + p9.geom_point(p9.aes("y", "error"), alpha=0.25))
 (
     p9.ggplot(XY_test_eval)
-    + p9.geom_point(p9.aes("pause_time_p50", "error"), alpha=0.25)
+    + p9.geom_point(p9.aes("word_count_delta", "error"), alpha=0.25)
 )
 (
     p9.ggplot(XY_test_eval)
