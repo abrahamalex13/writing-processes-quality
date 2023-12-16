@@ -14,16 +14,20 @@ dtest = xgb.DMatrix(X_test.astype("float"), label=y_test)
 
 params_constant = {
     "objective": "reg:squarederror",
-    "booster": "gbtree",
-    "lambda": 0.8994318744091285,
-    "alpha": 0.12920389427178292,
-    "subsample": 0.6082671221862356,
-    "colsample_bytree": 0.22304756450221913,
-    "max_depth": 9,
+    "booster": "dart",
+    "lambda": 0.008853585062499019,
+    "alpha": 1.292469504122251e-07,
+    "subsample": 0.42602151777947367,
+    "colsample_bytree": 0.4566523626147227,
+    "max_depth": 7,
     "min_child_weight": 6,
-    "eta": 0.008966046923872099,
-    "gamma": 5.099826742433144e-06,
-    "grow_policy": "lossguide",
+    "eta": 0.007199133082783168,
+    "gamma": 0.1844125167022635,
+    "grow_policy": "depthwise",
+    "sample_type": "weighted",
+    "normalize_type": "tree",
+    "rate_drop": 1.3589269106585726e-08,
+    "skip_drop": 0.7792020683419949,
 }
 # params_constant = pd.DataFrame(
 #     {
@@ -68,6 +72,11 @@ params_constant = {
 
 # scores
 
+watchlist = [(dtrain, "train"), (dtest, "eval")]
+model = xgb.train(
+    params_constant, dtrain, 2000, watchlist, early_stopping_rounds=50
+)
+
 models = []
 for kfold_round in range(5):
     kf = KFold(n_splits=5, random_state=777 + kfold_round, shuffle=True)
@@ -98,16 +107,20 @@ mean_squared_error(y_test, y_pred, squared=False)
 # finalize
 param = {
     "objective": "reg:squarederror",
-    "booster": "gbtree",
-    "lambda": 0.8994318744091285,
-    "alpha": 0.12920389427178292,
-    "subsample": 0.6082671221862356,
-    "colsample_bytree": 0.22304756450221913,
-    "max_depth": 9,
+    "booster": "dart",
+    "lambda": 0.008853585062499019,
+    "alpha": 1.292469504122251e-07,
+    "subsample": 0.42602151777947367,
+    "colsample_bytree": 0.4566523626147227,
+    "max_depth": 7,
     "min_child_weight": 6,
-    "eta": 0.008966046923872099,
-    "gamma": 5.099826742433144e-06,
-    "grow_policy": "lossguide",
+    "eta": 0.007199133082783168,
+    "gamma": 0.1844125167022635,
+    "grow_policy": "depthwise",
+    "sample_type": "weighted",
+    "normalize_type": "tree",
+    "rate_drop": 1.3589269106585726e-08,
+    "skip_drop": 0.7792020683419949,
 }
 num_boost_round = 1000
 
